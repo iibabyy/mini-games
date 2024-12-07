@@ -6,7 +6,7 @@
 /*   By: ibaby <ibaby@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 22:26:50 by ibaby             #+#    #+#             */
-/*   Updated: 2024/09/16 17:02:58 by ibaby            ###   ########.fr       */
+/*   Updated: 2024/12/07 20:11:08 by ibaby            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 # include "libft.h"
 
 # ifndef BUFFER_SIZE
-#  define BUFFER_SIZE 512
+#  define BUFFER_SIZE 1024
 # endif
 
 char	*get_next_line(int fd);

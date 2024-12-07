@@ -6,7 +6,7 @@
 /*   By: ibaby <ibaby@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/07 01:04:49 by ibaby             #+#    #+#             */
-/*   Updated: 2024/12/07 04:08:02 by ibaby            ###   ########.fr       */
+/*   Updated: 2024/12/07 20:16:21 by ibaby            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,11 +18,11 @@ int	get_infos(char *line, t_data *data)
 	while (*line >= '0' AND *line <= '9')
 		line++;
 	if (ft_strlen(line) < 3)
-		return (1);
+		return (free(line), 1);
 	data->empty = *line;
 	data->obstacle = *(line + 1);
 	data->full = *(line + 2);
-	return (0);
+	return (free(line), 0);
 }
 
 int	add_obstacle(size_t i, size_t j, t_data *data)
@@ -151,7 +151,6 @@ int	check_square(t_square *square, t_data *data)
 		return (1);
 	ft_memcpy(&data->square, square, sizeof(t_square));
 	data->square_found = true;
-	dprintf(2, "x: %lu, y: %lu, size: %lu\n", square->x, square->y, square->size);
 	return (0);
 }
 
@@ -162,10 +161,10 @@ int	bsq(t_data *data)
 	square.x = 0;
 	square.y = 0;
 	square.size = 1;
-	while (square.y < data->lines)
+	while (square.x + square.size < data->lines && square.y < data->lines)
 	{
 		square.x = 0;
-		while (square.x < data->line_len)
+		while (square.x + square.size < data->line_len && square.x < data->line_len)
 		{
 			while (check_square(&square, data) IS 0)
 				square.size++;
@@ -186,16 +185,15 @@ int	get_map(t_data *data, char *file)
 		return (data->fatal_error = true, perror(file), 1);
 	line = get_next_line(fd);
 	if (line IS NULL)
-		return (1);
+		return (close(fd), 1);
 	if (get_infos(line, data) IS 1)
-		return (1);
+		return (close(fd), 1);
 	data->map = malloc(sizeof(char *) * (data->lines + 1));
 	if (data->map IS NULL)
-		return (data->fatal_error = true, 1);
+		return (close(fd), data->fatal_error = true, 1);
 	if (get_lines(data, fd) IS 1)
-		return (1);
+		return (close(fd), 1);
 	close(fd);
-	// printf("BSQ\n");
 	if (bsq(data) IS 1)
 		return (1);
 	return (0);
@@ -206,17 +204,15 @@ void	fill_map(t_data *data)
 	size_t	x;
 	size_t	y;
 
-	y = 0;	
-	while (y < data->lines)
+	y = -1;
+	while (++y < data->lines)
 	{
-		x = 0;
-		while (x < data->line_len)
+		x = -1;
+		while (++x < data->line_len)
 		{
 			if (y >= data->square.y AND x >= data->square.x AND y <= data->square.y + data->square.size AND x <= data->square.x + data->square.size)
 				data->map[y][x] = data->full;
-			x++;
 		}
-		y++;
 	}
 }
 
@@ -224,30 +220,38 @@ void	print_map(t_data *data)
 {
 	size_t	i;
 
-	i = 0;
+	i = -1;
 	fill_map(data);
-	while (i < data->lines)
+	while (++i < data->lines)
 	{
 		printf("%s\n", data->map[i]);
-		i++;
 	}
 }
 
 int main(int ac, char **av) {
 	t_data	data;
 	
-	if (ac IS_NOT 2)
+	if (ac < 2)
 		return (dprintf(2, "usage: ./bsq [file]\n"), 1);
-	memset(&data, 0, sizeof(t_data));
-	if (get_map(&data, av[1]) IS 1)
-	{
-		if (data.fatal_error)
-			return (dprintf(2, "fatal error\n"), 1);
-		else
-			return (dprintf(2, "map error\n"), 0);
+	while (*++av) {
+		memset(&data, 0, sizeof(t_data));
+		if (get_map(&data, *av) IS 1)
+		{
+			free_2d_str(data.map);
+			if (data.fatal_error)
+				return (dprintf(2, "fatal error\n"), 1);
+			dprintf(2, "map error\n");
+			continue;
+		}
+		else if (data.square_found IS false) {
+			free_2d_str(data.map);
+			dprintf(2, "no square found\n");
+			continue ;
+		}
+		print_map(&data);
+		if (av[1])
+			printf("\n");
+		free_2d_str(data.map);
 	}
-	if (data.square_found IS false)
-		return (dprintf(2, "no square found\n"), 1);
-	print_map(&data);
 	return (0);
 }
