@@ -6,7 +6,7 @@
 /*   By: ibaby <ibaby@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/07 01:04:49 by ibaby             #+#    #+#             */
-/*   Updated: 2024/12/08 06:45:26 by ibaby            ###   ########.fr       */
+/*   Updated: 2024/12/08 14:34:41 by ibaby            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ int	add_obstacle(int i, int j, t_data *data)
 	return (0);
 }
 
-int	check_line(char *line, int len, t_data *data)
+int	check_line(char *line, int i, int len, t_data *data)
 {
 	int	j;
 
@@ -104,8 +104,8 @@ int	check_line(char *line, int len, t_data *data)
 	{
 		if (line[j] IS_NOT data->empty AND line[j] IS_NOT data->obstacle)
 			return (1);
-		// else if (line[j] IS data->obstacle)
-		// 	add_obstacle(i, j, data);
+		else if (line[j] IS data->obstacle)
+			add_obstacle(i, j, data);
 		j++;
 	}
 	return (0);
@@ -128,7 +128,7 @@ int	get_lines(t_data *data, int fd)
 			len = ft_strlen(line);
 		else if ((size_t)len IS_NOT ft_strlen(line))
 			return (1);
-		if (check_line(line, len, data) IS 1)
+		if (check_line(line, i, len, data) IS 1)
 			return (1);
 		data->map[i] = line;
 		i++;
