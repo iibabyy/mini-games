@@ -105,7 +105,7 @@ OBJECTS_PREFIXED = $(addprefix $(OBJS_DIR), $(OBJS))
 
 CC = cc
 
-CC_FLAGS = -Wall -Wextra -Werror -g3 -fPIE
+CC_FLAGS = -Wall -Wextra -Werror -fPIE -pg -g3
 
 all: $(NAME)
 

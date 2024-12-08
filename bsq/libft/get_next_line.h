@@ -6,7 +6,7 @@
 /*   By: ibaby <ibaby@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 22:26:50 by ibaby             #+#    #+#             */
-/*   Updated: 2024/12/08 15:24:04 by ibaby            ###   ########.fr       */
+/*   Updated: 2024/12/08 20:19:54 by ibaby            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 # include "libft.h"
 
 # ifndef BUFFER_SIZE
-#  define BUFFER_SIZE 32768
+#  define BUFFER_SIZE 8192
 # endif
 
 char	*get_next_line(int fd);
@@ -30,7 +30,7 @@ void	*ft_calloc(size_t count, size_t size);
 int		is_newline(char *str);
 char	*ft_strdup(const char *src);
 char	*re_before_line(char *all);
-void	after_line(char *all, char *dest);
+char	*after_line(char *all, char *dest);
 void	ft_clean(char *save);
 
 #endif

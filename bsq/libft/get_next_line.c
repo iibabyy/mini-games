@@ -6,7 +6,7 @@
 /*   By: ibaby <ibaby@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 22:20:39 by ibaby             #+#    #+#             */
-/*   Updated: 2024/09/16 17:01:38 by ibaby            ###   ########.fr       */
+/*   Updated: 2024/12/08 20:24:38 by ibaby            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,31 +19,37 @@
 
 char	*get_next_line(int fd)
 {
-	char		*buffer;
+	// char		buffer[BUFFER_SIZE + 1];
 	static char	save[MAX_FD][BUFFER_SIZE + 1] = {0};
 	char		*str;
+	size_t		str_size;
 	int			byte_read;
 
 	if (fd < 0 || fd >= MAX_FD || BUFFER_SIZE <= 0)
 		return (NULL);
-	byte_read = 1;
+	byte_read = -1;
 	str = ft_strdup(save[fd]);
-	buffer = ft_malloc(sizeof(char) * (BUFFER_SIZE + 1));
-	if (!str || !buffer)
-		return (ft_free(buffer), ft_free(str),
-			malloc_failed("get_next_line"), NULL);
-	while (is_newline(str) == 0 && byte_read > 0)
+	str_size = ft_strlen(str);
+	if (!str)
+		return (ft_free(str), malloc_failed("get_next_line"), NULL);
+	if (is_newline(str))
+		return (after_line(str, save[fd]));
+	while (true)
 	{
-		byte_read = read(fd, buffer, BUFFER_SIZE);
-		if (byte_read < 0)
-			return (ft_clean(save[fd]), ft_free(buffer), ft_free(str), NULL);
-		buffer[byte_read] = '\0';
-		str = ft_re_strjoin(str, buffer);
+		str = realloc(str, sizeof(char) * (str_size + BUFFER_SIZE + 1));
 		if (!str)
-			return (ft_free(buffer), NULL);
+			return (NULL);
+		byte_read = read(fd, str + str_size, BUFFER_SIZE);
+		if (byte_read < 0)
+			return (ft_clean(save[fd]), ft_free(str), NULL);
+		else if (byte_read == 0)
+			break ;
+		str[str_size + byte_read] = '\0';
+		if (is_newline(str + str_size))
+			break ;
+		str_size += byte_read;
 	}
-	(after_line(str, save[fd]), str = re_before_line(str));
-	return (ft_free(buffer), str);
+	return (after_line(str, save[fd]));
 }
 
 void	ft_clean(char *save)
@@ -61,13 +67,13 @@ void	ft_clean(char *save)
 	ft_strlcpy(save, save + i + 1, BUFFER_SIZE + 1);
 }
 
-void	after_line(char *str, char *save)
+char	*after_line(char *str, char *save)
 {
 	int	i;
 
 	i = 0;
 	if (!str)
-		return ;
+		return (NULL);
 	while (str[i] != '\n' && str[i])
 		i++;
 	if (str[i] == '\n')
@@ -75,9 +81,13 @@ void	after_line(char *str, char *save)
 	else
 	{
 		*save = '\0';
-		return ;
+		return (str);
 	}
 	ft_strlcpy(save, str + i, BUFFER_SIZE + 1);
+	str[i] = '\0';
+	save = ft_strdup(str);
+	ft_free(str);
+	return (save);
 }
 
 char	*re_before_line(char *all)
