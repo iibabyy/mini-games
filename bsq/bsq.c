@@ -6,7 +6,7 @@
 /*   By: ibaby <ibaby@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/07 01:04:49 by ibaby             #+#    #+#             */
-/*   Updated: 2024/12/08 15:54:44 by ibaby            ###   ########.fr       */
+/*   Updated: 2024/12/08 16:08:21 by ibaby            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ int	get_infos(char *line, t_data *data)
 	data->lines = ft_atoi(line);
 	while (*line >= '0' AND *line <= '9')
 		line++;
-	if (ft_strlen(line) < 3)
+	if (ft_strlen(line) != 4) // infos plus \n
 		return (1);
 	data->empty = *line;
 	data->obstacle = *(line + 1);
