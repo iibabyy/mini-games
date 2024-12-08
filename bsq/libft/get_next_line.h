@@ -6,7 +6,7 @@
 /*   By: ibaby <ibaby@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 22:26:50 by ibaby             #+#    #+#             */
-/*   Updated: 2024/12/07 20:11:08 by ibaby            ###   ########.fr       */
+/*   Updated: 2024/12/07 23:43:33 by ibaby            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@
 char	*get_next_line(int fd);
 char	*ft_strjoin(const char *s1, const char *s2);
 void	del_line(char *buffer);
-size_t	ft_strlen(const char *str);
 void	*ft_calloc(size_t count, size_t size);
 int		is_newline(char *str);
 char	*ft_strdup(const char *src);

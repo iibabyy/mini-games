@@ -6,7 +6,7 @@
 /*   By: ibaby <ibaby@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/07 01:04:49 by ibaby             #+#    #+#             */
-/*   Updated: 2024/12/07 20:16:21 by ibaby            ###   ########.fr       */
+/*   Updated: 2024/12/08 04:33:22 by ibaby            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,14 +18,14 @@ int	get_infos(char *line, t_data *data)
 	while (*line >= '0' AND *line <= '9')
 		line++;
 	if (ft_strlen(line) < 3)
-		return (free(line), 1);
+		return (1);
 	data->empty = *line;
 	data->obstacle = *(line + 1);
 	data->full = *(line + 2);
-	return (free(line), 0);
+	return (0);
 }
 
-int	add_obstacle(size_t i, size_t j, t_data *data)
+int	add_obstacle(int i, int j, t_data *data)
 {
 	t_obstacle	*new_obstacle;
 	t_obstacle	*tmp;
@@ -48,9 +48,9 @@ int	add_obstacle(size_t i, size_t j, t_data *data)
 	return (0);
 }
 
-int	check_line(char *line, size_t i, size_t len, t_data *data)
+int	check_line(char *line, int i, int len, t_data *data)
 {
-	size_t	j;
+	int	j;
 
 	j = 0;
 	if (line[len - 1] IS_NOT '\n')
@@ -70,8 +70,8 @@ int	check_line(char *line, size_t i, size_t len, t_data *data)
 
 int	get_lines(t_data *data, int fd)
 {
-	size_t		i;
-	long long	len;
+	int			i;
+	int			len;
 	char		*line;
 
 	i = 0;
@@ -104,41 +104,44 @@ int	check_square_size(t_square *square, t_data *data)
 	return (0);
 }
 
-long long	get_obstacle_count(long long x, long long y, t_data *data)
+int	get_obstacle_count(int x, int y, t_data *data)
 {
-	long long	obstacle_count;
+	int	obstacle_count;
 	t_obstacle	*obstacle;
 
 	obstacle_count = 0;
 	obstacle = data->obstacles;
 	while (obstacle IS_NOT NULL)
 	{
-		if ((long long)obstacle->x <= x AND (long long)obstacle->y <= y)
+		if (obstacle->x <= x AND obstacle->y <= y)
 			obstacle_count++;
 		obstacle = obstacle->next;
 	}
 	return (obstacle_count);
 }
 
-/*	formula to know if there is an obstacle in the square*/
-bool	is_obstacle_in(size_t top_left, size_t top_right, size_t bottom_left, size_t bottom_right)
+/*	formula to know if there is an obstacle in the square	*/
+bool	is_obstacle_in(int top_left, int top_right, int bottom_left, int bottom_right)
 {
 	return ((bottom_right - bottom_left - top_right + top_left) > 0);
 }
 
 int	check_square_obstacle(t_square *square, t_data *data)
 {
-	long long	top_left_obstacle_count;
-	long long	top_right_obstacle_count;
-	long long	bottom_left_obstacle_count;
-	long long	bottom_right_obstacle_count;
+	int	top_left_obstacle_count;
+	int	top_right_obstacle_count;
+	int	bottom_left_obstacle_count;
+	int	bottom_right_obstacle_count;
 
 	top_left_obstacle_count = get_obstacle_count(square->x - 1, square->y - 1, data);
 	top_right_obstacle_count = get_obstacle_count(square->x + square->size, square->y - 1, data);
 	bottom_left_obstacle_count = get_obstacle_count(square->x - 1, square->y + square->size, data);
 	bottom_right_obstacle_count = get_obstacle_count(square->x + square->size, square->y + square->size, data);
 
-	return (is_obstacle_in(top_left_obstacle_count, top_right_obstacle_count, bottom_left_obstacle_count, bottom_right_obstacle_count));
+	return (is_obstacle_in(
+		top_left_obstacle_count, top_right_obstacle_count,
+		bottom_left_obstacle_count, bottom_right_obstacle_count
+		));
 }
 
 int	check_square(t_square *square, t_data *data)
@@ -161,10 +164,10 @@ int	bsq(t_data *data)
 	square.x = 0;
 	square.y = 0;
 	square.size = 1;
-	while (square.x + square.size < data->lines && square.y < data->lines)
+	while (square.y + square.size < data->lines)
 	{
 		square.x = 0;
-		while (square.x + square.size < data->line_len && square.x < data->line_len)
+		while (square.x + square.size < data->line_len)
 		{
 			while (check_square(&square, data) IS 0)
 				square.size++;
@@ -187,7 +190,8 @@ int	get_map(t_data *data, char *file)
 	if (line IS NULL)
 		return (close(fd), 1);
 	if (get_infos(line, data) IS 1)
-		return (close(fd), 1);
+		return (free(line), close(fd), 1);
+	free(line);
 	data->map = malloc(sizeof(char *) * (data->lines + 1));
 	if (data->map IS NULL)
 		return (close(fd), data->fatal_error = true, 1);
@@ -201,24 +205,25 @@ int	get_map(t_data *data, char *file)
 
 void	fill_map(t_data *data)
 {
-	size_t	x;
-	size_t	y;
+	int	x;
+	int	y;
 
-	y = -1;
-	while (++y < data->lines)
+	y = data->square.y;
+	while (y < data->square.y + data->square.size)
 	{
-		x = -1;
-		while (++x < data->line_len)
+		x = data->square.x;
+		while (x < data->square.x + data->square.size)
 		{
-			if (y >= data->square.y AND x >= data->square.x AND y <= data->square.y + data->square.size AND x <= data->square.x + data->square.size)
-				data->map[y][x] = data->full;
+			data->map[y][x] = data->full;
+			x++;
 		}
+		y++;
 	}
 }
 
 void	print_map(t_data *data)
 {
-	size_t	i;
+	int	i;
 
 	i = -1;
 	fill_map(data);
