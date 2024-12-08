@@ -12,8 +12,8 @@ NAME	= bsq
 LIBFT	= libft/libft.a
 
 # Source files
-SRCS	= $(SRCS_DIR)bsq.c
 SRCS_DIR	= srcs/
+SRCS	= $(SRCS_DIR)bsq.c
 
 # Object files
 OBJS_DIR = .objs/
@@ -21,7 +21,7 @@ OBJS	= $(SRCS:$(SRCS_DIR)%.c=$(OBJS_DIR)%.o)
 
 # Compiler and flags
 CC		= cc
-CFLAGS	= -Wall -Wextra -Werror -pg -g3
+CFLAGS	= -Wall -Wextra -Werror -g3 -pg
 INCLUDE	= -Iincludes -Ilibft
 
 # Rules

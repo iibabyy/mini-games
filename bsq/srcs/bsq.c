@@ -6,54 +6,58 @@
 /*   By: ibaby <ibaby@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/07 01:04:49 by ibaby             #+#    #+#             */
-/*   Updated: 2024/12/08 19:06:33 by ibaby            ###   ########.fr       */
+/*   Updated: 2024/12/08 22:44:33 by ibaby            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/bsq.h"
 
-int	count_obstacle(int y, int x, t_data *data)
+void	count_obstacle(int y, t_data *data)
 {
 	int	count;
-
-	count = (data->map[y][x] == data->obstacle);
-	if (y > 0) {
-		count += data->obstacle_map[y - 1][x];
-	}
-	if (x > 0) {
-		count += data->obstacle_map[y][x - 1];
-	}
-	if (x > 0 AND y > 0) {
-		count -= data->obstacle_map[y - 1][x - 1];
-	}
-	return (count);
-}
-
-int	create_int_matrix(t_data *data)
-{
 	int	x;
-	int	y;
-	
-	data->obstacle_map = malloc(sizeof(int *) * (data->lines + 1));
-	if (data->obstacle_map == NULL)
-		return (1);
-	y = 0;
-	while (y < data->lines)
-	{
-		x = 0;
-		data->obstacle_map[y] = malloc(sizeof(int) * data->line_len);
-		if (data->obstacle_map[y] == NULL)
-			return (1);
-		while (x < data->line_len)
-		{
-			data->obstacle_map[y][x] = count_obstacle(y, x, data);
-			x++;
+
+	x = -1;
+	while (++x < data->line_len) {
+		count = (data->map[y][x] == data->obstacle);
+		if (y > 0) {
+			count += data->obstacle_map[y - 1][x];
 		}
-		y++;
+		if (x > 0) {
+			count += data->obstacle_map[y][x - 1];
+		}
+		if (x > 0 AND y > 0) {
+			count -= data->obstacle_map[y - 1][x - 1];
+		}
+		data->obstacle_map[y][x] = count;
 	}
-	data->obstacle_map[y] = NULL;
-	return (0);
 }
+
+// int	create_int_matrix(t_data *data)
+// {
+// 	int	x;
+// 	int	y;
+	
+// 	data->obstacle_map = malloc(sizeof(int *) * (data->lines + 1));
+// 	if (data->obstacle_map == NULL)
+// 		return (1);
+// 	y = 0;
+// 	while (y < data->lines)
+// 	{
+// 		x = 0;
+// 		data->obstacle_map[y] = malloc(sizeof(int) * data->line_len);
+// 		if (data->obstacle_map[y] == NULL)
+// 			return (1);
+// 		while (x < data->line_len)
+// 		{
+// 			data->obstacle_map[y][x] = count_obstacle(y, x, data);
+// 			x++;
+// 		}
+// 		y++;
+// 	}
+// 	data->obstacle_map[y] = NULL;
+// 	return (0);
+// }
 
 int	get_infos(char *line, t_data *data)
 {
@@ -61,7 +65,7 @@ int	get_infos(char *line, t_data *data)
 	while (*line >= '0' AND *line <= '9')
 		line++;
 	if (ft_strlen(line) < 3)
-		return (1);
+		return (printf("bad infos\n"), 1);
 	data->empty = *line;
 	data->obstacle = *(line + 1);
 	data->full = *(line + 2);
@@ -93,21 +97,22 @@ int	add_obstacle(int i, int j, t_data *data)
 
 int	check_line(char *line, t_data *data)
 {
-	int	j;
 	char	empty;
 	char	obstacle;
+	int		x;
 
-	j = 0;
+	x = -1;
 	empty = data->empty;
 	obstacle = data->obstacle;
-	while (line[j] IS empty OR line[j] IS obstacle) {
-		++j;
+	while (line[++x] IS empty OR line[x] IS obstacle) {
 	}
-	if (line[j] != '\n')
-		return (-1);
-	line[j] = '\0';
-	return (j);
+	if (line[x] != '\n')
+		return (write(2, &line[x], 1), -1);
+	line[x] = '\0';
+	return (x);
 }
+
+
 
 int	get_lines(t_data *data, int fd)
 {
@@ -118,19 +123,23 @@ int	get_lines(t_data *data, int fd)
 
 	i = -1;
 	len = -1;
+	data->obstacle_map = malloc(sizeof(int *) * (data->lines + 1));
 	while (++i < data->lines)
 	{
 		line = get_next_line(fd);
 		if (line IS NULL)
-			return (1);
+			break ;
 		check_len = check_line(line, data);
 		if (len == -1)
 			len = check_len;
 		if (check_len == -1 || check_len != len)
 			return (1);
+		data->obstacle_map[i] = malloc(sizeof(int) * len);
+		count_obstacle(i, data);
 		data->map[i] = line;
 	}
 	data->map[i] = NULL;
+	data->obstacle_map[i] = NULL;
 	data->line_len = len;
 	return (0);
 }
@@ -270,7 +279,7 @@ int	get_map(t_data *data, char *file)
 		return (data->fatal_error = true, perror(file), 1);
 	line = get_next_line(fd);
 	if (line IS NULL)
-		return (close(fd), 1);
+		return (printf("empty file\n"), close(fd), 1);
 	if (get_infos(line, data) IS 1)
 		return (free(line), close(fd), 1);
 	free(line);
@@ -280,7 +289,7 @@ int	get_map(t_data *data, char *file)
 	if (get_lines(data, fd) IS 1)
 		return (close(fd), 1);
 	close(fd);
-	create_int_matrix(data);
+	// create_int_matrix(data);
 	// exit(EXIT_SUCCESS);
 	if (bsq(data) IS 1)
 		return (1);
