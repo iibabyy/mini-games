@@ -6,7 +6,7 @@
 /*   By: ibaby <ibaby@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/07 01:04:49 by ibaby             #+#    #+#             */
-/*   Updated: 2024/12/08 16:09:56 by ibaby            ###   ########.fr       */
+/*   Updated: 2024/12/08 16:46:08 by ibaby            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,24 +91,17 @@ int	add_obstacle(int i, int j, t_data *data)
 	return (0);
 }
 
-int	check_line(char *line, int len, t_data *data)
+int	check_line(char *line, t_data *data)
 {
 	int	j;
 
 	j = 0;
-	if (line[len - 1] IS_NOT '\n')
-		return (dprintf(2, "no end of line\n"), 1);
-	else
-		line[len - 1] = '\0';
-	while (line[j])
-	{
-		if (line[j] IS_NOT data->empty AND line[j] IS_NOT data->obstacle)
-			return (1);
-		// else if (line[j] IS data->obstacle)
-		// 	add_obstacle(i, j, data);
+	while (line[j] IS data->empty OR line[j] IS data->obstacle)
 		j++;
-	}
-	return (0);
+	if (line[j] != '\n')
+		return (-1);
+	line[j] = '\0';
+	return (j);
 }
 
 int	get_lines(t_data *data, int fd)
@@ -116,6 +109,7 @@ int	get_lines(t_data *data, int fd)
 	int			i;
 	int			len;
 	char		*line;
+	int			check_len;
 
 	i = 0;
 	len = -1;
@@ -124,17 +118,16 @@ int	get_lines(t_data *data, int fd)
 		line = get_next_line(fd);
 		if (line IS NULL)
 			return (1);
-		if (len IS -1)
-			len = ft_strlen(line);
-		else if ((size_t)len IS_NOT ft_strlen(line))
-			return (1);
-		if (check_line(line, len, data) IS 1)
+		check_len = check_line(line, data);
+		if (len == -1)
+			len = check_len;
+		if (check_len == -1 || check_len != len)
 			return (1);
 		data->map[i] = line;
 		i++;
 	}
 	data->map[i] = NULL;
-	data->line_len = len - 1;
+	data->line_len = len;
 	return (0);
 }
 
@@ -316,13 +309,15 @@ void	print_map(t_data *data)
 	fill_map(data);
 	while (++i < data->lines)
 	{
-		printf("%s\n", data->map[i]);
+		write(STDOUT_FILENO, data->map[i], data->line_len);
+		write(STDOUT_FILENO, "\n", 1);
+		// printf("%s\n", data->map[i]);
 	}
 }
 
 int main(int ac, char **av) {
 	t_data	data;
-	
+
 	if (ac < 2)
 		return (dprintf(2, "usage: ./bsq [file]\n"), 1);
 	while (*++av) {
