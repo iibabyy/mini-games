@@ -6,7 +6,7 @@
 /*   By: ibaby <ibaby@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/07 01:04:49 by ibaby             #+#    #+#             */
-/*   Updated: 2024/12/08 14:34:41 by ibaby            ###   ########.fr       */
+/*   Updated: 2024/12/08 15:54:44 by ibaby            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ int	add_obstacle(int i, int j, t_data *data)
 	return (0);
 }
 
-int	check_line(char *line, int i, int len, t_data *data)
+int	check_line(char *line, int len, t_data *data)
 {
 	int	j;
 
@@ -104,8 +104,8 @@ int	check_line(char *line, int i, int len, t_data *data)
 	{
 		if (line[j] IS_NOT data->empty AND line[j] IS_NOT data->obstacle)
 			return (1);
-		else if (line[j] IS data->obstacle)
-			add_obstacle(i, j, data);
+		// else if (line[j] IS data->obstacle)
+		// 	add_obstacle(i, j, data);
 		j++;
 	}
 	return (0);
@@ -128,7 +128,7 @@ int	get_lines(t_data *data, int fd)
 			len = ft_strlen(line);
 		else if ((size_t)len IS_NOT ft_strlen(line))
 			return (1);
-		if (check_line(line, i, len, data) IS 1)
+		if (check_line(line, len, data) IS 1)
 			return (1);
 		data->map[i] = line;
 		i++;
@@ -145,6 +145,22 @@ int	check_square_size(t_square *square, t_data *data)
 	if (square->y + square->size >= data->lines)
 		return (1);
 	return (0);
+}
+
+int	get_test_obstacle_count(int x, int y, t_data *data)
+{
+	int	obstacle_count;
+	t_obstacle	*obstacle;
+
+	obstacle_count = 0;
+	obstacle = data->obstacles;
+	while (obstacle IS_NOT NULL && (obstacle->x <= x OR obstacle->y <= y))
+	{
+		if (obstacle->x <= x AND obstacle->y <= y)
+			obstacle_count++;
+		obstacle = obstacle->next;
+	}
+	return (obstacle_count);
 }
 
 int	get_obstacle_count(int x, int y, t_data *data)
@@ -193,6 +209,39 @@ int	check_square(t_square *square, t_data *data)
 	return (0);
 }
 
+int	next_pos(t_square *square, t_data *data)
+{
+	int	x;
+	int	y;
+	int	square_y;
+
+	square_y = square->y;
+	x = square->x + square->size + 2;
+	while (--x >= square->x) {
+		y = square_y + square->size + 2;
+		while (--y >= square_y) {
+			if (y < data->lines && data->map[y][x] == data->obstacle)
+				return (x + 1);
+		}
+	}
+	return (square->x + 1);
+	// if (x < data->line_len) {
+	// 	while (y < data->lines && data->map[y][x] != data->obstacle && y < square->y + square->size + 1)
+	// 		++y;
+	// 	if (y < data->lines && data->map[y][x] == data->obstacle)
+	// 		return (x);
+	// }
+	// x = square->x;
+	// y = square->y + square->size + 1;
+	// if (y < data->lines) {
+	// 	while (x < data->line_len && data->map[y][x] != data->obstacle && x < square->x + square->size + 1)
+	// 		++x;
+	// 	if (x < data->line_len && data->map[y][x] == data->obstacle)
+	// 		return (x);
+	// }
+	return (square->x + 1);
+}
+
 int	bsq(t_data *data)
 {
 	t_square	square;
@@ -206,7 +255,8 @@ int	bsq(t_data *data)
 		{
 			while (check_square(&square, data) IS 0)
 				square.size++;
-			square.x++;
+			square.x = next_pos(&square, data);
+			// ++square.x;
 		}
 		square.y++;
 	}
@@ -234,6 +284,7 @@ int	get_map(t_data *data, char *file)
 		return (close(fd), 1);
 	close(fd);
 	create_int_matrix(data);
+	// exit(EXIT_SUCCESS);
 	if (bsq(data) IS 1)
 		return (1);
 	return (0);
